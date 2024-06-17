@@ -6,8 +6,16 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body{
+            align-items : center;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
+    <?php require_once 'db.php'; ?>
+    
 <link   href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
         rel="stylesheet">
 <?php require_once(__DIR__ . '/header.php'); ?>
@@ -86,7 +94,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 <!-- Formulaire pour ajouter / modifier un produit -->
 <form method="post">
-    <h3>Ajouter / Modifier un produit</h3>
     <label>Nom du produit:</label><br>
     <input type="text" name="name" required><br>
     
