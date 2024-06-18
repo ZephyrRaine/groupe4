@@ -77,34 +77,53 @@
 
         $products = &$_SESSION['products'];
 
-        // Fonction pour ajouter un produit
-        function addProduct($name, $price, $categories, $description, $available) {
-            global $products;
-            $product = new Product($name, $price, $categories, $description, $available);
-            $products[] = $product;
-        }
+        // Fonction pour ajouter un produit dans la base de données
+function addProduct($name, $price, $categories, $description, $available) {
+    global $conn;
 
-        // Fonction pour modifier un produit (par son index dans le tableau)
-        function modifyProduct($index, $name, $price, $categories, $description, $available) {
-            global $products;
-            if (isset($products[$index])) {
-                $products[$index]->name = $name;
-                $products[$index]->price = $price;
-                $products[$index]->categories = $categories;
-                $products[$index]->description = $description;
-                $products[$index]->available = $available;
-            }
-        }
+    // Préparation de la requête SQL sécurisée
+    $stmt = $conn->prepare("INSERT INTO produits (nom, description, prix, stock, id_categorie) VALUES (?, ?, ?, 0, ?)");
+    $stmt->bind_param("ssdi", $name, $description, $price, $categories);
 
-        // Fonction pour supprimer un produit (par son index dans le tableau)
-        function deleteProduct($index) {
-            global $products;
-            if (isset($products[$index])) {
-                unset($products[$index]);
-                // Réorganiser les clés du tableau après suppression
-                $products = array_values($products);
-            }
-        }
+    // Exécution de la requête
+    if ($stmt->execute()) {
+        return true; // Succès
+    } else {
+        return false; // Échec
+    }
+}
+
+// Fonction pour modifier un produit dans la base de données
+function modifyProduct($id, $name, $price, $categories, $description, $available) {
+    global $conn;
+
+    // Préparation de la requête SQL sécurisée
+    $stmt = $conn->prepare("UPDATE produits SET nom = ?, description = ?, prix = ?, id_categorie = ? WHERE id_produit = ?");
+    $stmt->bind_param("ssdii", $name, $description, $price, $categories, $id);
+
+    // Exécution de la requête
+    if ($stmt->execute()) {
+        return true; // Succès
+    } else {
+        return false; // Échec
+    }
+}
+
+// Fonction pour supprimer un produit dans la base de données
+function deleteProduct($id) {
+    global $conn;
+
+    // Préparation de la requête SQL sécurisée
+    $stmt = $conn->prepare("DELETE FROM produits WHERE id_produit = ?");
+    $stmt->bind_param("i", $id);
+
+    // Exécution de la requête
+    if ($stmt->execute()) {
+        return true; // Succès
+    } else {
+        return false; // Échec
+    }
+}
 
         // Traitement du formulaire
         if ($_SERVER["REQUEST_METHOD"] == "POST") {
