@@ -1,7 +1,7 @@
 <footer class="bg-light text-center text-lg-start mt-auto">
     <style>
         footer {
-            background-color: #333;
+            background-color: white;
             text-align: center;
             bottom: 0;
             width: 100%;
