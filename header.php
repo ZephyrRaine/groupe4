@@ -82,7 +82,5 @@ function authenticateUser($email, $password) {
     <?php endif; ?>
     <!-- Rest of your page content goes here -->
 </div>
-
-<?php require_once(__DIR__ . '/footer.php'); ?>
 </body>
 </html>
