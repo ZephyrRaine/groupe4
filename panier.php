@@ -1,16 +1,24 @@
 <?php
 require_once 'db.php';
 
-// Récupérer les articles de la base de données
-$sql = "SELECT * FROM produits
-JOIN commandes_produits ON commandes_produits.id_produit = produits.id
-JOIN utilisateurs ON ";
+// Récupérer les utilisateurs
+$sql = "SELECT * FROM utilisateurs";
 $result = $dbh->query($sql);
-$cartItems = $result->fetchAll();
-$total = 0;
+$users = $result->fetchAll();
 
-foreach ($cartItems as $item) {
-    $total += $item['prix'] * $item['quantite'];
+// Récupérer les commandes de tous les utilisateurs
+$userOrders = [];
+foreach ($users as $user) {
+    $sql = "
+        SELECT produits.nom, description, produits.prix, commandes_produits.quantite
+        FROM commandes_produits
+        JOIN produits ON commandes_produits.id_produit = produits.id
+        JOIN commandes ON commandes_produits.id_commande = commandes.id
+        WHERE commandes.id_utilisateur = :user_id
+    ";
+    $stmt = $dbh->prepare($sql);
+    $stmt->execute(['user_id' => $user['id']]);
+    $userOrders[$user['id']] = $stmt->fetchAll();
 }
 ?>
 <!DOCTYPE html>
@@ -26,43 +34,73 @@ foreach ($cartItems as $item) {
     <div class="container">
         <?php require_once 'header.php'; ?>
         <h1 class="mt-4">Panier</h1>
-        
-        <?php if (!empty($cartItems)) : ?>
-            <table class="table mt-4">
+
+        <!-- Boutons pour sélectionner un utilisateur -->
+        <div class="btn-group mt-4" role="group">
+            <?php foreach ($users as $user) : ?>
+                <button class="btn btn-secondary" onclick="showOrders(<?php echo $user['id']; ?>)">
+                    <?php echo htmlspecialchars($user['prenom']); ?>
+                </button>
+            <?php endforeach; ?>
+        </div>
+
+        <!-- Tableau des commandes -->
+        <div id="ordersTable" class="mt-4" style="display: none;">
+            <table class="table">
                 <thead>
                     <tr>
-                        <th>Nom du produit</th>
+                        <th>Produit</th>
                         <th>Prix unitaire</th>
                         <th>Quantité</th>
                         <th>Sous-total</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <?php foreach ($cartItems as $item) : ?>
-                        <tr>
-                            <td><?php echo htmlspecialchars($item['nom']); ?></td>
-                            <td><?php echo number_format($item['prix'], 2, ',', ' ') . ' €'; ?></td>
-                            <td><?php echo $item['quantite']; ?></td>
-                            <td><?php echo number_format($item['prix'] * $item['quantite'], 2, ',', ' ') . ' €'; ?></td>
-                        </tr>
-                    <?php endforeach; ?>
+                <tbody id="ordersTableBody">
+                    <!-- Les lignes seront insérées dynamiquement ici -->
                 </tbody>
                 <tfoot>
                     <tr>
                         <th colspan="3" class="text-end">Total</th>
-                        <th><?php echo number_format($total, 2, ',', ' ') . ' €'; ?></th>
+                        <th id="ordersTableTotal"></th>
                     </tr>
                 </tfoot>
             </table>
             <div class="d-flex justify-content-end">
                 <a href="checkout.php" class="btn btn-primary">Passer à la caisse</a>
             </div>
-        <?php else : ?>
-            <p class="mt-4">Votre panier est vide.</p>
-        <?php endif; ?>
+        </div>
     </div>
 
     <?php require_once 'footer.php'; ?>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Les commandes de chaque utilisateur en format JavaScript
+        const userOrders = <?php echo json_encode($userOrders); ?>;
+
+        function showOrders(userId) {
+            const orders = userOrders[userId];
+            const ordersTableBody = document.getElementById('ordersTableBody');
+            const ordersTableTotal = document.getElementById('ordersTableTotal');
+            let total = 0;
+
+            ordersTableBody.innerHTML = ''; // Effacer les lignes précédentes
+
+            orders.forEach(order => {
+                const subtotal = order.prix * order.quantite;
+                total += subtotal;
+                console.log(order);
+                const row = `<tr>
+                    <td>${order.description}</td>
+                    <td>${order.prix.replace('.', ',')} €</td>
+                    <td>${order.quantite}</td>
+                    <td>${subtotal.toString().replace('.', ',')} €</td>
+                </tr>`;
+                ordersTableBody.insertAdjacentHTML('beforeend', row);
+            });
+
+            ordersTableTotal.textContent = total.toFixed(2).replace('.', ',') + ' €';
+            document.getElementById('ordersTable').style.display = 'block';
+        }
+    </script>
 </body>
 </html>
