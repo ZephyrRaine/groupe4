@@ -1,15 +1,16 @@
 <?php
-// Simule des articles dans le panier
-$cartItems = [
-    ['name' => 'Produit 1', 'price' => 29.99, 'quantity' => 1],
-    ['name' => 'Produit 2', 'price' => 80.15, 'quantity' => 2],
-    ['name' => 'Produit 3', 'price' => 19.99, 'quantity' => 1],
-];
+require_once 'db.php';
 
-// Calculer le total du panier
+// Récupérer les articles de la base de données
+$sql = "SELECT * FROM produits
+JOIN commandes_produits ON commandes_produits.id_produit = produits.id
+JOIN utilisateurs ON ";
+$result = $dbh->query($sql);
+$cartItems = $result->fetchAll();
 $total = 0;
+
 foreach ($cartItems as $item) {
-    $total += $item['price'] * $item['quantity'];
+    $total += $item['prix'] * $item['quantite'];
 }
 ?>
 <!DOCTYPE html>
@@ -19,14 +20,11 @@ foreach ($cartItems as $item) {
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panier</title>
-    <link
-        href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
-        rel="stylesheet"
-    >
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="d-flex flex-column min-vh-100">
     <div class="container">
-        <?php require_once(__DIR__ . '/header.php'); ?>
+        <?php require_once 'header.php'; ?>
         <h1 class="mt-4">Panier</h1>
         
         <?php if (!empty($cartItems)) : ?>
@@ -42,10 +40,10 @@ foreach ($cartItems as $item) {
                 <tbody>
                     <?php foreach ($cartItems as $item) : ?>
                         <tr>
-                            <td><?php echo htmlspecialchars($item['name']); ?></td>
-                            <td><?php echo number_format($item['price'], 2, ',', ' ') . ' €'; ?></td>
-                            <td><?php echo $item['quantity']; ?></td>
-                            <td><?php echo number_format($item['price'] * $item['quantity'], 2, ',', ' ') . ' €'; ?></td>
+                            <td><?php echo htmlspecialchars($item['nom']); ?></td>
+                            <td><?php echo number_format($item['prix'], 2, ',', ' ') . ' €'; ?></td>
+                            <td><?php echo $item['quantite']; ?></td>
+                            <td><?php echo number_format($item['prix'] * $item['quantite'], 2, ',', ' ') . ' €'; ?></td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
@@ -64,7 +62,7 @@ foreach ($cartItems as $item) {
         <?php endif; ?>
     </div>
 
-    <?php require_once(__DIR__ . '/footer.php'); ?>
+    <?php require_once 'footer.php'; ?>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
