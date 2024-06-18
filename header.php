@@ -16,6 +16,11 @@
                     <a class="nav-link" href="compte.php">Compte</a>
                 </li>
             </ul>
+            <form class="d-flex" action="process_login.php" method="post">
+                <input class="form-control me-2" type="email" placeholder="Email" aria-label="Email" name="email" required>
+                <input class="form-control me-2" type="password" placeholder="Mot de passe" aria-label="Mot de passe" name="password" required>
+                <button class="btn btn-outline-success" type="submit">Connexion</button>
+            </form>
         </div>
     </div>
 </nav>
