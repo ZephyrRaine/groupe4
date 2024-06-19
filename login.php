@@ -1,72 +1,52 @@
 <?php
-session_start(); // Démarre la session (si ce n'est pas déjà fait)
+session_start();
+require_once(__DIR__ . '/config/mysql.php');
+require_once(__DIR__ . '/functions.php');
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Vérifier les informations de connexion
+// Handle login form submission
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = $_POST['username'];
     $password = $_POST['password'];
 
-    // Connexion à la base de données
-    require_once 'db.php'; // Inclure le fichier de connexion à la base de données
-
-    // Vérification des informations d'identification
-    $query = "SELECT * FROM users WHERE username = :username AND password = :password";
-    $stmt = $dbh->prepare($query);
-    $stmt->bindParam(':username', $username);
-    $stmt->bindParam(':password', $password);
-    $stmt->execute();
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if ($user) {
-        // Utilisateur trouvé, enregistrer les informations de connexion dans la session
-        $_SESSION['user_id'] = $user['id'];
-        $_SESSION['username'] = $user['username'];
-        header("Location: profile.php"); // Rediriger vers la page de profil ou une autre page sécurisée
+    // Validate credentials
+    if (validateUser($username, $password)) {
+        $_SESSION['username'] = $username;
+        header('Location: index.php');
         exit();
     } else {
-        $login_error = "Nom d'utilisateur ou mot de passe incorrect.";
+        $error = "Invalid username or password.";
     }
 }
 ?>
 
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Connexion</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body class="d-flex flex-column min-vh-100">
-
+<body>
 <div class="container">
-    <div class="row justify-content-center mt-5">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-body">
-                    <h2 class="card-title text-center">Connexion</h2>
-                    <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>">
-                        <div class="mb-3">
-                            <label for="username" class="form-label">Nom d'utilisateur</label>
-                            <input type="text" class="form-control" id="username" name="username" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="password" class="form-label">Mot de passe</label>
-                            <input type="password" class="form-control" id="password" name="password" required>
-                        </div>
-                        <?php if (isset($login_error)): ?>
-                            <div class="alert alert-danger" role="alert">
-                                <?php echo $login_error; ?>
-                            </div>
-                        <?php endif; ?>
-                        <div class="text-center">
-                            <button type="submit" class="btn btn-primary">Se connecter</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
+    <h1>Login</h1>
+    <?php if (isset($error)) : ?>
+        <div class="alert alert-danger" role="alert">
+            <?php echo $error; ?>
         </div>
-    </div>
+    <?php endif; ?>
+    <form method="POST" action="login.php">
+        <div class="mb-3">
+            <label for="username" class="form-label">Username</label>
+            <input type="text" class="form-control" id="username" name="username" required>
+        </div>
+        <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <input type="password" class="form-control" id="password" name="password" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Login</button>
+    </form>
 </div>
-
 </body>
 </html>
