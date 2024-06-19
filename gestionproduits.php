@@ -134,6 +134,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </style>
 </head>
 <body>
+    <?php require_once 'header.php'; ?>
     <div class="container">
         <?php
         class Product {
