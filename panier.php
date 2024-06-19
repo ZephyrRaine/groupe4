@@ -82,7 +82,7 @@ foreach ($userOrders as $item) {
                 <tbody id="ordersTableBody">
                     <?php foreach ($userOrders as $order) : ?>
                         <tr>
-                            <td><?php echo htmlspecialchars($order['description']); ?></td>
+                            <td><?php echo htmlspecialchars($order['nom']); ?></td>
                             <td><?php echo number_format($order['prix'], 2, ',', ' ') . ' €'; ?></td>
                             <td><?php echo $order['quantite']; ?></td>
                             <td><?php echo number_format($order['prix'] * $order['quantite'], 2, ',', ' ') . ' €'; ?></td>
