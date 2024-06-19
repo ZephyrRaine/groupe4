@@ -57,6 +57,20 @@
                 }
             }
         }
+
+        function addToCart(productId) {
+        // Send an AJAX request to add the product to the cart
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "panier.php", true);
+        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                // Handle the response here (e.g., show a success message)
+                alert("Product added to cart!");
+            }
+        };
+        xhr.send("product_id=" + productId);
+        }
     </script>
     <form method='GET'>
         <?php
@@ -74,7 +88,7 @@
     $sortOrder = isset($_GET['order']) ? $_GET['order'] : 'asc';
 
     // Base SQL query
-    $sql = "SELECT p.nom, p.description, p.prix, p.stock, c.nom AS categorie
+    $sql = "SELECT p.id, p.nom, p.description, p.prix, p.stock, c.nom AS categorie
             FROM produits p
             INNER JOIN categories c ON p.id_categorie = c.id";
 
@@ -106,6 +120,7 @@
         echo "<th onclick='sortTable(2)'>Prix</th>";
         echo "<th onclick='sortTable(3)'>Stock</th>";
         echo "<th onclick='sortTable(4)'>Catégorie</th>";
+        echo "<th>Action</th>";
         echo "</tr>";
 
         // Output data of each product
@@ -116,6 +131,7 @@
             echo "<td>" . htmlspecialchars($row["prix"]) . "</td>";
             echo "<td>" . htmlspecialchars($row["stock"]) . "</td>";
             echo "<td>" . htmlspecialchars($row["categorie"]) . "</td>";
+            echo "<td><button onclick='addToCart(" . $row["id"] . ")'>Ajouter au panier</button></td>";
             echo "</tr>";
         }
 

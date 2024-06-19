@@ -4,6 +4,21 @@ require_once 'db.php';
 // Sélectionner un utilisateur spécifique (par exemple, l'utilisateur avec l'ID 1)
 $userId = 1;
 
+// Vérifier si une requête POST a été envoyée
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Récupérer l'ID du produit à partir de la requête POST
+    $productId = $_POST['product_id'];
+    $quantity = 1; // Quantité à ajouter
+
+    // Ajouter le produit au panier
+    $sql = "
+        INSERT INTO commandes_produits (id_commande, id_produit, quantite)
+        VALUES (:user_id, :product_id, :quantity)
+    ";
+    $stmt = $dbh->prepare($sql);
+    $stmt->execute(['user_id' => $userId, 'product_id' => $productId, 'quantity' => $quantity]);
+}
+
 // Récupérer les commandes de cet utilisateur
 $sql = "
     SELECT produits.nom, produits.description, produits.prix, commandes_produits.quantite
