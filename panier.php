@@ -27,6 +27,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         DELETE FROM commandes_produits
                         WHERE id_commande = :user_id AND id_produit = :product_id
                     ";
+                    $stmt = $dbh->prepare($sql);
+                    $stmt->execute(['user_id' => $userId, 'product_id' => $productId]);
                 } else {
                     // Sinon, réduire la quantité
                     $sql = "
@@ -34,10 +36,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         SET quantite = quantite - :quantity
                         WHERE id_commande = :user_id AND id_produit = :product_id
                     ";
+                    $stmt = $dbh->prepare($sql);
+                    $stmt->execute(['user_id' => $userId, 'product_id' => $productId, 'quantity' => $quantityToRemove]);
                 }
-
-                $stmt = $dbh->prepare($sql);
-                $stmt->execute(['user_id' => $userId, 'product_id' => $productId, 'quantity' => $quantityToRemove]);
             }
         } else {
             // Ajouter le produit au panier
@@ -107,6 +108,7 @@ $products = $dbh->query($sql)->fetchAll();
         <h1 class="mt-4">Panier</h1>
 
     
+
         <!-- Tableau des commandes -->
         <div id="ordersTable" class="mt-4">
             <h2>Votre panier</h2>
