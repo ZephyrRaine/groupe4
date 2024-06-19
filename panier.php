@@ -103,8 +103,8 @@ $products = $dbh->query($sql)->fetchAll();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="d-flex flex-column min-vh-100">
-    <div class="container">
         <?php require_once 'header.php'; ?>
+        <div class="container">
         <h1 class="mt-4">Panier</h1>
 
     
