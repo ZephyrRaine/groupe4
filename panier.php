@@ -1,24 +1,39 @@
 <?php
 require_once 'db.php';
 
-// Récupérer les utilisateurs
-$sql = "SELECT * FROM utilisateurs";
-$result = $dbh->query($sql);
-$users = $result->fetchAll();
+// Sélectionner un utilisateur spécifique (par exemple, l'utilisateur avec l'ID 1)
+$userId = 1;
 
-// Récupérer les commandes de tous les utilisateurs
-$userOrders = [];
-foreach ($users as $user) {
+// Vérifier si une requête POST a été envoyée
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Récupérer l'ID du produit à partir de la requête POST
+    $productId = $_POST['product_id'];
+    $quantity = 1; // Quantité à ajouter
+
+    // Ajouter le produit au panier
     $sql = "
-        SELECT produits.nom, description, produits.prix, commandes_produits.quantite
-        FROM commandes_produits
-        JOIN produits ON commandes_produits.id_produit = produits.id
-        JOIN commandes ON commandes_produits.id_commande = commandes.id
-        WHERE commandes.id_utilisateur = :user_id
+        INSERT INTO commandes_produits (id_commande, id_produit, quantite)
+        VALUES (:user_id, :product_id, :quantity)
     ";
     $stmt = $dbh->prepare($sql);
-    $stmt->execute(['user_id' => $user['id']]);
-    $userOrders[$user['id']] = $stmt->fetchAll();
+    $stmt->execute(['user_id' => $userId, 'product_id' => $productId, 'quantity' => $quantity]);
+}
+
+// Récupérer les commandes de cet utilisateur
+$sql = "
+    SELECT produits.nom, produits.description, produits.prix, commandes_produits.quantite
+    FROM commandes_produits
+    JOIN produits ON commandes_produits.id_produit = produits.id
+    JOIN commandes ON commandes_produits.id_commande = commandes.id
+    WHERE commandes.id_utilisateur = :user_id
+";
+$stmt = $dbh->prepare($sql);
+$stmt->execute(['user_id' => $userId]);
+$userOrders = $stmt->fetchAll();
+$total = 0;
+
+foreach ($userOrders as $item) {
+    $total += $item['prix'] * $item['quantite'];
 }
 ?>
 <!DOCTYPE html>
@@ -35,17 +50,8 @@ foreach ($users as $user) {
         <?php require_once 'header.php'; ?>
         <h1 class="mt-4">Panier</h1>
 
-        <!-- Boutons pour sélectionner un utilisateur -->
-        <div class="btn-group mt-4" role="group">
-            <?php foreach ($users as $user) : ?>
-                <button class="btn btn-secondary" onclick="showOrders(<?php echo $user['id']; ?>)">
-                    <?php echo htmlspecialchars($user['prenom']); ?>
-                </button>
-            <?php endforeach; ?>
-        </div>
-
         <!-- Tableau des commandes -->
-        <div id="ordersTable" class="mt-4" style="display: none;">
+        <div id="ordersTable" class="mt-4">
             <table class="table">
                 <thead>
                     <tr>
@@ -56,12 +62,19 @@ foreach ($users as $user) {
                     </tr>
                 </thead>
                 <tbody id="ordersTableBody">
-                    <!-- Les lignes seront insérées dynamiquement ici -->
+                    <?php foreach ($userOrders as $order) : ?>
+                        <tr>
+                            <td><?php echo htmlspecialchars($order['description']); ?></td>
+                            <td><?php echo number_format($order['prix'], 2, ',', ' ') . ' €'; ?></td>
+                            <td><?php echo $order['quantite']; ?></td>
+                            <td><?php echo number_format($order['prix'] * $order['quantite'], 2, ',', ' ') . ' €'; ?></td>
+                        </tr>
+                    <?php endforeach; ?>
                 </tbody>
                 <tfoot>
                     <tr>
                         <th colspan="3" class="text-end">Total</th>
-                        <th id="ordersTableTotal"></th>
+                        <th><?php echo number_format($total, 2, ',', ' ') . ' €'; ?></th>
                     </tr>
                 </tfoot>
             </table>
@@ -73,34 +86,5 @@ foreach ($users as $user) {
 
     <?php require_once 'footer.php'; ?>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Les commandes de chaque utilisateur en format JavaScript
-        const userOrders = <?php echo json_encode($userOrders); ?>;
-
-        function showOrders(userId) {
-            const orders = userOrders[userId];
-            const ordersTableBody = document.getElementById('ordersTableBody');
-            const ordersTableTotal = document.getElementById('ordersTableTotal');
-            let total = 0;
-
-            ordersTableBody.innerHTML = ''; // Effacer les lignes précédentes
-
-            orders.forEach(order => {
-                const subtotal = order.prix * order.quantite;
-                total += subtotal;
-                console.log(order);
-                const row = `<tr>
-                    <td>${order.description}</td>
-                    <td>${order.prix.replace('.', ',')} €</td>
-                    <td>${order.quantite}</td>
-                    <td>${subtotal.toString().replace('.', ',')} €</td>
-                </tr>`;
-                ordersTableBody.insertAdjacentHTML('beforeend', row);
-            });
-
-            ordersTableTotal.textContent = total.toFixed(2).replace('.', ',') + ' €';
-            document.getElementById('ordersTable').style.display = 'block';
-        }
-    </script>
 </body>
 </html>
