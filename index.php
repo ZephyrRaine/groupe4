@@ -90,7 +90,7 @@
     // Base SQL query
     $sql = "SELECT p.id, p.nom, p.description, p.prix, p.stock, c.nom AS categorie
             FROM produits p
-            INNER JOIN categories c ON p.id_categorie = c.id";
+            LEFT JOIN categories c ON p.id_categorie = c.id";
 
     // Add search condition
     if (!empty($search)) {
