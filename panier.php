@@ -106,7 +106,7 @@ $products = $dbh->query($sql)->fetchAll();
         <?php require_once 'header.php'; ?>
         <h1 class="mt-4">Panier</h1>
 
-        
+    
         <!-- Tableau des commandes -->
         <div id="ordersTable" class="mt-4">
             <h2>Votre panier</h2>
@@ -117,7 +117,7 @@ $products = $dbh->query($sql)->fetchAll();
                         <th>Prix unitaire</th>
                         <th>Quantité</th>
                         <th>Sous-total</th>
-                        <th>Action</th>
+                        <th>Supprimer</th>
                     </tr>
                 </thead>
                 <tbody id="ordersTableBody">
