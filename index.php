@@ -1,5 +1,8 @@
 <!DOCTYPE html>
 <html>
+<header>
+    <?php require_once 'header.php'; ?>
+</header>
 <body>
 <title>Liste des produits</title>
     <style>
@@ -125,6 +128,6 @@
     ?>
 </body>
 <footer>
-    <?php require_once 'footer.php'; ?>
+    <?php require_once(__DIR__ . '/footer.php'); ?>
 </footer>
 </html>
