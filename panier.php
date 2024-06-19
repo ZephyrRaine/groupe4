@@ -10,11 +10,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $productId = $_POST['product_id'];
 
         if (isset($_POST['action']) && $_POST['action'] === 'delete') {
-            // Supprimer tous les produits avec le même nom du panier
+            $quantityToRemove = intval($_POST['quantity']);
+            // Vérifier la quantité actuelle du produit dans le panier
             $sql = "
-                DELETE FROM commandes_produits
+                SELECT quantite FROM commandes_produits
                 WHERE id_commande = :user_id AND id_produit = :product_id
             ";
+            $stmt = $dbh->prepare($sql);
+            $stmt->execute(['user_id' => $userId, 'product_id' => $productId]);
+            $productInCart = $stmt->fetch();
+
+            if ($productInCart) {
+                if ($productInCart['quantite'] <= $quantityToRemove) {
+                    // Si la quantité à enlever est supérieure ou égale à la quantité actuelle, supprimer l'entrée
+                    $sql = "
+                        DELETE FROM commandes_produits
+                        WHERE id_commande = :user_id AND id_produit = :product_id
+                    ";
+                } else {
+                    // Sinon, réduire la quantité
+                    $sql = "
+                        UPDATE commandes_produits
+                        SET quantite = quantite - :quantity
+                        WHERE id_commande = :user_id AND id_produit = :product_id
+                    ";
+                }
+
+                $stmt = $dbh->prepare($sql);
+                $stmt->execute(['user_id' => $userId, 'product_id' => $productId, 'quantity' => $quantityToRemove]);
+            }
         } else {
             // Ajouter le produit au panier
             // Vérifier si le produit est déjà dans le panier
@@ -40,10 +64,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     VALUES (:user_id, :product_id, 1)
                 ";
             }
-        }
 
-        $stmt = $dbh->prepare($sql);
-        $stmt->execute(['user_id' => $userId, 'product_id' => $productId]);
+            $stmt = $dbh->prepare($sql);
+            $stmt->execute(['user_id' => $userId, 'product_id' => $productId]);
+        }
     }
 }
 
@@ -82,6 +106,7 @@ $products = $dbh->query($sql)->fetchAll();
         <?php require_once 'header.php'; ?>
         <h1 class="mt-4">Panier</h1>
 
+        
         <!-- Tableau des commandes -->
         <div id="ordersTable" class="mt-4">
             <h2>Votre panier</h2>
@@ -92,7 +117,7 @@ $products = $dbh->query($sql)->fetchAll();
                         <th>Prix unitaire</th>
                         <th>Quantité</th>
                         <th>Sous-total</th>
-                        <th>Suppression</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody id="ordersTableBody">
@@ -111,6 +136,7 @@ $products = $dbh->query($sql)->fetchAll();
                                     <form method="post" style="display:inline;">
                                         <input type="hidden" name="product_id" value="<?php echo $order['id_produit']; ?>">
                                         <input type="hidden" name="action" value="delete">
+                                        <input type="number" name="quantity" value="1" min="1" max="<?php echo $order['quantite']; ?>" class="form-control d-inline" style="width: 80px;">
                                         <button type="submit" class="btn btn-danger">Vider</button>
                                     </form>
                                 </td>
