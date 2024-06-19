@@ -92,7 +92,7 @@ $products = $dbh->query($sql)->fetchAll();
                         <th>Prix unitaire</th>
                         <th>Quantité</th>
                         <th>Sous-total</th>
-                        <th>Action</th>
+                        <th>Suppression</th>
                     </tr>
                 </thead>
                 <tbody id="ordersTableBody">
