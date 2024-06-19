@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr">
+
+<?php require_once(__DIR__ . '/header.php'); ?>
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -12,7 +14,7 @@
 </head>
 <body class="d-flex flex-column min-vh-100">
     <div class="container">
-        <?php require_once(__DIR__ . '/header.php'); ?>
+        
         <h1 class="mt-4">Connexion</h1>
         
         <form action="process_login.php" method="post" class="mt-4">
@@ -28,7 +30,11 @@
         </form>
     </div>
 
-    <?php require_once(__DIR__ . '/footer.php'); ?>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+    
 </body>
+<?php require_once(__DIR__ . '/footer.php'); ?>
+
+
 </html>
