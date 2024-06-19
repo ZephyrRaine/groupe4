@@ -6,40 +6,50 @@ $userId = 1;
 
 // Vérifier si une requête POST a été envoyée
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Récupérer l'ID du produit à partir de la requête POST
-    $productId = $_POST['product_id'];
+    if (isset($_POST['product_id'])) {
+        $productId = $_POST['product_id'];
 
-    // Vérifier si le produit est déjà dans le panier
-    $sql = "
-        SELECT * FROM commandes_produits
-        WHERE id_commande = :user_id AND id_produit = :product_id
-    ";
-    $stmt = $dbh->prepare($sql);
-    $stmt->execute(['user_id' => $userId, 'product_id' => $productId]);
-    $productInCart = $stmt->fetch();
+        if (isset($_POST['action']) && $_POST['action'] === 'delete') {
+            // Supprimer tous les produits avec le même nom du panier
+            $sql = "
+                DELETE FROM commandes_produits
+                WHERE id_commande = :user_id AND id_produit = :product_id
+            ";
+        } else {
+            // Ajouter le produit au panier
+            // Vérifier si le produit est déjà dans le panier
+            $sql = "
+                SELECT * FROM commandes_produits
+                WHERE id_commande = :user_id AND id_produit = :product_id
+            ";
+            $stmt = $dbh->prepare($sql);
+            $stmt->execute(['user_id' => $userId, 'product_id' => $productId]);
+            $productInCart = $stmt->fetch();
 
-    if ($productInCart) {
-        // Si le produit est déjà dans le panier, augmenter la quantité
-        $sql = "
-            UPDATE commandes_produits
-            SET quantite = quantite + 1
-            WHERE id_commande = :user_id AND id_produit = :product_id
-        ";
-    } else {
-        // Si le produit n'est pas encore dans le panier, l'ajouter
-        $sql = "
-            INSERT INTO commandes_produits (id_commande, id_produit, quantite)
-            VALUES (:user_id, :product_id, 1)
-        ";
+            if ($productInCart) {
+                // Si le produit est déjà dans le panier, augmenter la quantité
+                $sql = "
+                    UPDATE commandes_produits
+                    SET quantite = quantite + 1
+                    WHERE id_commande = :user_id AND id_produit = :product_id
+                ";
+            } else {
+                // Si le produit n'est pas encore dans le panier, l'ajouter
+                $sql = "
+                    INSERT INTO commandes_produits (id_commande, id_produit, quantite)
+                    VALUES (:user_id, :product_id, 1)
+                ";
+            }
+        }
+
+        $stmt = $dbh->prepare($sql);
+        $stmt->execute(['user_id' => $userId, 'product_id' => $productId]);
     }
-
-    $stmt = $dbh->prepare($sql);
-    $stmt->execute(['user_id' => $userId, 'product_id' => $productId]);
 }
 
 // Récupérer les commandes de cet utilisateur
 $sql = "
-    SELECT produits.nom, produits.description, produits.prix, commandes_produits.quantite
+    SELECT produits.nom, produits.description, produits.prix, commandes_produits.id_produit, commandes_produits.quantite
     FROM commandes_produits
     JOIN produits ON commandes_produits.id_produit = produits.id
     JOIN commandes ON commandes_produits.id_commande = commandes.id
@@ -53,6 +63,10 @@ $total = 0;
 foreach ($userOrders as $item) {
     $total += $item['prix'] * $item['quantite'];
 }
+
+// Récupérer tous les produits disponibles
+$sql = "SELECT * FROM produits";
+$products = $dbh->query($sql)->fetchAll();
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -70,6 +84,7 @@ foreach ($userOrders as $item) {
 
         <!-- Tableau des commandes -->
         <div id="ordersTable" class="mt-4">
+            <h2>Votre panier</h2>
             <table class="table">
                 <thead>
                     <tr>
@@ -77,21 +92,35 @@ foreach ($userOrders as $item) {
                         <th>Prix unitaire</th>
                         <th>Quantité</th>
                         <th>Sous-total</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody id="ordersTableBody">
-                    <?php foreach ($userOrders as $order) : ?>
+                    <?php if (empty($userOrders)) : ?>
                         <tr>
-                            <td><?php echo htmlspecialchars($order['nom']); ?></td>
-                            <td><?php echo number_format($order['prix'], 2, ',', ' ') . ' €'; ?></td>
-                            <td><?php echo $order['quantite']; ?></td>
-                            <td><?php echo number_format($order['prix'] * $order['quantite'], 2, ',', ' ') . ' €'; ?></td>
+                            <td colspan="5" class="text-center">Votre panier est vide.</td>
                         </tr>
-                    <?php endforeach; ?>
+                    <?php else : ?>
+                        <?php foreach ($userOrders as $order) : ?>
+                            <tr>
+                                <td><?php echo htmlspecialchars($order['nom']); ?></td>
+                                <td><?php echo number_format($order['prix'], 2, ',', ' ') . ' €'; ?></td>
+                                <td><?php echo $order['quantite']; ?></td>
+                                <td><?php echo number_format($order['prix'] * $order['quantite'], 2, ',', ' ') . ' €'; ?></td>
+                                <td>
+                                    <form method="post" style="display:inline;">
+                                        <input type="hidden" name="product_id" value="<?php echo $order['id_produit']; ?>">
+                                        <input type="hidden" name="action" value="delete">
+                                        <button type="submit" class="btn btn-danger">Vider</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                 </tbody>
                 <tfoot>
                     <tr>
-                        <th colspan="3" class="text-end">Total</th>
+                        <th colspan="4" class="text-end">Total</th>
                         <th><?php echo number_format($total, 2, ',', ' ') . ' €'; ?></th>
                     </tr>
                 </tfoot>
