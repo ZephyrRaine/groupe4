@@ -3,13 +3,34 @@ require_once 'db.php'; // Assurez-vous d'inclure correctement votre fichier de c
 
 session_start();
 
+// Fonction pour obtenir l'ID d'une catégorie ou en créer une nouvelle si elle n'existe pas
+function getCategoryID($categoryName) {
+    global $dbh;
+
+    // Vérifier si la catégorie existe déjà
+    $stmt = $dbh->prepare("SELECT id FROM categories WHERE nom = ?");
+    $stmt->execute([$categoryName]);
+    $category = $stmt->fetch();
+
+    if ($category) {
+        return $category['id'];
+    } else {
+        // Insérer la nouvelle catégorie et retourner son ID
+        $stmt = $dbh->prepare("INSERT INTO categories (nom) VALUES (?)");
+        $stmt->execute([$categoryName]);
+        return $dbh->lastInsertId();
+    }
+}
+
 // Fonction pour ajouter un produit dans la base de données
 function addProduct($name, $price, $categories, $description, $stock) {
     global $dbh;
 
+    $categoryID = getCategoryID($categories);
+
     // Préparation de la requête SQL sécurisée
     $stmt = $dbh->prepare("INSERT INTO produits (nom, description, prix, stock, id_categorie) VALUES (?, ?, ?, ?, ?)");
-    $stmt->execute([$name, $description, $price, $stock, $categories]);
+    $stmt->execute([$name, $description, $price, $stock, $categoryID]);
 
     return $stmt->rowCount() > 0; // Succès si une ligne a été ajoutée
 }
@@ -18,9 +39,11 @@ function addProduct($name, $price, $categories, $description, $stock) {
 function modifyProduct($id, $name, $price, $categories, $description, $stock) {
     global $dbh;
 
+    $categoryID = getCategoryID($categories);
+
     // Préparation de la requête SQL sécurisée
     $stmt = $dbh->prepare("UPDATE produits SET nom = ?, description = ?, prix = ?, stock = ?, id_categorie = ? WHERE id = ?");
-    $stmt->execute([$name, $description, $price, $stock, $categories, $id]);
+    $stmt->execute([$name, $description, $price, $stock, $categoryID, $id]);
 
     return $stmt->rowCount() > 0; // Succès si une ligne a été modifiée
 }
@@ -111,7 +134,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </style>
 </head>
 <body>
-    <?php require_once(__DIR__ . '/header.php'); ?>
+    <?php require_once 'header.php'; ?>
     <div class="container">
         <?php
         class Product {
