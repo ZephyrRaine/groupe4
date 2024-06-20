@@ -185,7 +185,7 @@ $products = $dbh->query($sql)->fetchAll();
     <?php require_once 'footer.php'; ?>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        var stripe = Stripe('pk_live_51PTjn0RubmPDRwsvCtK9ltxA6z4V8SZquXakThucuw1qdqkMmutd0Or2C0Cf9riTFXQs9BHU0QlhOQfFxMxUIgOU00U5RZxsPM');
+        var stripe = Stripe('pk_test_51PTjn0RubmPDRwsvcT6koUKBdBSte5qyZ53bj7F0SDdMkDRCBMApLWz0KHtRkH3z8a5O3N85yCJwXUAc7aQDU4hL000Lvpsus1');
         var elements = stripe.elements();
         var card = elements.create('card');
         card.mount('#card-element');
