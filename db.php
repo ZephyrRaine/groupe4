@@ -1,4 +1,4 @@
-a<?php
+<?php
 $servername = "localhost";
 $username = "groupe4";
 $password = "groupe4";
