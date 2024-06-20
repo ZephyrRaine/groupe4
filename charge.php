@@ -6,7 +6,6 @@
     <title>Merci pour votre paiement</title>
     <style>
         body {
-            display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
@@ -32,6 +31,5 @@
     <div class="container">
         <h1>Merci pour votre paiement</h1>
     </div>
-    <?php require_once 'footer.php'; ?>
 </body>
 </html>
