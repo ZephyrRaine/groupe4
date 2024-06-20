@@ -101,13 +101,12 @@ $products = $dbh->query($sql)->fetchAll();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panier</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://js.stripe.com/v3/"></script>
 </head>
 <body class="d-flex flex-column min-vh-100">
-        <?php require_once 'header.php'; ?>
-        <div class="container">
+    <?php require_once 'header.php'; ?>
+    <div class="container">
         <h1 class="mt-4">Panier</h1>
-
-    
 
         <!-- Tableau des commandes -->
         <div id="ordersTable" class="mt-4">
@@ -153,13 +152,67 @@ $products = $dbh->query($sql)->fetchAll();
                     </tr>
                 </tfoot>
             </table>
-            <div class="d-flex justify-content-end">
-                <a href="checkout.php" class="btn btn-primary">Passer à la caisse</a>
+            <!-- Formulaire de commande -->
+            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#paymentModal">Payer</button>
+        
+            <!-- Modal de paiement -->
+            <div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <form id="payment-form" method="post" action="charge.php">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="paymentModalLabel">Informations de paiement</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label for="card-element" class="form-label">Carte de crédit</label>
+                                    <div id="card-element"></div>
+                                    <div id="card-errors" role="alert"></div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                <button type="submit" class="btn btn-primary">Confirmer le paiement</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <?php require_once 'footer.php'; ?>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        var stripe = Stripe('pk_live_51PTjn0RubmPDRwsvCtK9ltxA6z4V8SZquXakThucuw1qdqkMmutd0Or2C0Cf9riTFXQs9BHU0QlhOQfFxMxUIgOU00U5RZxsPM');
+        var elements = stripe.elements();
+        var card = elements.create('card');
+        card.mount('#card-element');
+
+        var form = document.getElementById('payment-form');
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            stripe.createToken(card).then(function(result) {
+                if (result.error) {
+                    var errorElement = document.getElementById('card-errors');
+                    errorElement.textContent = result.error.message;
+                } else {
+                    stripeTokenHandler(result.token);
+                }
+            });
+        });
+
+        function stripeTokenHandler(token) {
+            var form = document.getElementById('payment-form');
+            var hiddenInput = document.createElement('input');
+            hiddenInput.setAttribute('type', 'hidden');
+            hiddenInput.setAttribute('name', 'stripeToken');
+            hiddenInput.setAttribute('value', token.id);
+            form.appendChild(hiddenInput);
+            form.submit();
+        }
+    </script>
 </body>
 </html>
