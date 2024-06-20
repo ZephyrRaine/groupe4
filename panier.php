@@ -1,5 +1,6 @@
 <?php
 require_once 'db.php';
+session_start();
 
 // Sélectionner un utilisateur spécifique (par exemple, l'utilisateur avec l'ID 1)
 $userId = 1;
