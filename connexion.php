@@ -1,33 +1,30 @@
 <?php
 session_start();
+require_once 'db.php'; // Assurez-vous que ce chemin est correct et que db.php initialise bien $pdo
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Exemple de données utilisateur pour la démonstration
-    $users = [
-        ['email' => 'user@example.com', 'password' => 'password123']
-    ];
-
     $email = $_POST['email'];
     $password = $_POST['password'];
 
-    // Vérification des informations de connexion
-    $authenticated = false;
-    foreach ($users as $user) {
-        if ($user['email'] === $email && $user['password'] === $password) {
-            $authenticated = true;
-            $_SESSION['user'] = $email; // Stocke l'utilisateur dans la session
-            break;
-        }
-    }
+    // Connexion à la base de données
+    try {
+        // Utilisez la variable $pdo définie dans db.php
+        $stmt = $dbh->prepare("SELECT * FROM utilisateurs WHERE email = :email");
+        $stmt->bindParam(':email', $email);
+        $stmt->execute();
 
-    if ($authenticated) {
-        // Redirige vers compte.php après une connexion réussie
-        header('Location: compte.php');
-        exit;
-    } else {
-        // Redirige vers connexion.php avec un message d'erreur
-        header('Location: connexion.php?error=1');
-        exit;
+        // Vérification des informations de connexion
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($user && $password == $user['mot_de_passe']) {
+            $_SESSION['utilisateurs'] = $email; // Stocke l'utilisateur dans la session
+            header('Location: compte.php');
+            exit;
+        } else {
+            header('Location: connexion.php?error=1');
+            exit;
+        }
+    } catch (PDOException $e) {
+        echo "Erreur : " . $e->getMessage();
     }
 }
 ?>
@@ -38,10 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Connexion</title>
-    <link
-            href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
-            rel="stylesheet"
-    >
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="d-flex flex-column min-vh-100">
 <div class="container">
